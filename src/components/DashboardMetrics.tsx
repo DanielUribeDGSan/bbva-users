@@ -199,7 +199,7 @@ export default function DashboardMetrics() {
                 {/* Lora Piterson Profile Card */}
                 <div className="card p-0 rounded-[32px] overflow-hidden relative h-[380px] shrink-0 group">
                     <img 
-                        src="/src/assets/bbva-estratega-life.avif" 
+                        src="/bbva-estratega-life.avif" 
                         alt="BBVA Estratega Life" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
@@ -222,7 +222,7 @@ export default function DashboardMetrics() {
                 {/* Usuarios Nuevos Año Actual Card */}
                 <div className="card p-0 rounded-[32px] overflow-hidden relative h-[380px] shrink-0 group">
                     <img 
-                        src="/src/assets/bbva-estratega-life-2.avif" 
+                        src="/bbva-estratega-life-2.avif" 
                         alt="Usuarios Nuevos del año" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
