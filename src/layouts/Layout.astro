@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { Settings, Bell, User } from 'lucide-react';
+import AccessModal from '../components/AccessModal';
 
 interface Props {
 	title: string;
@@ -54,5 +55,6 @@ const menuItems = [
                 <slot />
             </main>
         </div>
+        <AccessModal client:only="react" />
 	</body>
 </html>
