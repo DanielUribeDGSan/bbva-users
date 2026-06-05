@@ -2,81 +2,12 @@
 import Layout from '../layouts/Layout.astro';
 import DashboardMetrics from '../components/DashboardMetrics';
 import { Users, UserPlus, MonitorPlay } from 'lucide-react';
+
+const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+const mesActual = meses[new Date().getMonth()];
 ---
 
 <Layout title="Crextio Dashboard" activeMenu="dashboard">
-    <div class="flex justify-between items-end mb-10">
-        <div>
-            <h1 class="text-[42px] font-light tracking-tight leading-tight mb-2">Welcome in, Nixtio</h1>
-            
-            <div class="flex items-center gap-8 mt-6">
-                <div class="flex flex-col gap-1 w-24">
-                    <div class="flex justify-between text-xs text-text-muted">
-                        <span>Interviews</span>
-                    </div>
-                    <div class="w-full bg-white rounded-full h-8 overflow-hidden flex items-center relative p-1 shadow-sm border border-black/5">
-                        <div class="bg-[#001391] h-full rounded-full flex items-center justify-center text-white text-[11px] font-medium z-10 w-[45%]" style="min-width: 2.5rem;">
-                            15%
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex flex-col gap-1 w-24">
-                    <div class="flex justify-between text-xs text-text-muted">
-                        <span>Hired</span>
-                    </div>
-                    <div class="w-full bg-white rounded-full h-8 overflow-hidden flex items-center relative p-1 shadow-sm border border-black/5">
-                        <div class="bg-[#0c6dff] h-full rounded-full flex items-center justify-center text-white text-[11px] font-medium z-10 w-[45%]" style="min-width: 2.5rem;">
-                            15%
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex flex-col gap-1 w-32">
-                    <div class="flex justify-between text-xs text-text-muted">
-                        <span>Project time</span>
-                    </div>
-                    <div class="w-full h-8 flex items-center relative">
-                        <div class="w-full h-[2px] bg-gradient-to-r from-[#0c6dff] to-transparent" style="background-image: repeating-linear-gradient(90deg, #d1e3ff, #d1e3ff 4px, transparent 4px, transparent 8px);"></div>
-                        <div class="absolute left-0 top-1/2 -translate-y-1/2 bg-[#0c6dff] text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-sm">60%</div>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-1 w-24 ml-auto">
-                    <div class="flex justify-between text-xs text-text-muted">
-                        <span>Output</span>
-                    </div>
-                    <div class="w-full bg-white rounded-full h-8 flex items-center px-3 shadow-sm border border-black/5">
-                        <span class="text-xs font-medium">10%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="flex gap-8 items-end">
-            <div class="flex items-center gap-3">
-                <span class="text-[56px] font-light leading-none">78</span>
-                <span class="text-xs text-text-muted flex flex-col justify-end pb-2">
-                    <Users size={16} class="mb-1" />
-                    Employe
-                </span>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="text-[56px] font-light leading-none">56</span>
-                <span class="text-xs text-text-muted flex flex-col justify-end pb-2">
-                    <UserPlus size={16} class="mb-1" />
-                    Hirings
-                </span>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="text-[56px] font-light leading-none">203</span>
-                <span class="text-xs text-text-muted flex flex-col justify-end pb-2">
-                    <MonitorPlay size={16} class="mb-1" />
-                    Projects
-                </span>
-            </div>
-        </div>
-    </div>
 
     <DashboardMetrics client:load />
 </Layout>

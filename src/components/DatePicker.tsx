@@ -5,9 +5,10 @@ interface DatePickerProps {
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
+    alignRight?: boolean;
 }
 
-export default function DatePicker({ value, onChange, placeholder = "Seleccionar fecha" }: DatePickerProps) {
+export default function DatePicker({ value, onChange, placeholder = "Seleccionar fecha", alignRight = false }: DatePickerProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(value ? new Date(value) : new Date());
     const containerRef = useRef<HTMLDivElement>(null);
@@ -126,7 +127,7 @@ export default function DatePicker({ value, onChange, placeholder = "Seleccionar
 
             {/* Calendar Popover */}
             {isOpen && (
-                <div className="absolute top-full left-0 mt-1 w-[280px] bg-white rounded-[20px] shadow-lg border border-black/5 p-4 z-[60]">
+                <div className={`absolute top-full ${alignRight ? 'right-0' : 'left-0'} mt-1 w-[280px] bg-white rounded-[20px] shadow-lg border border-black/5 p-4 z-[60]`}>
                     {/* Header */}
                     <div className="flex justify-between items-center mb-4">
                         <button 

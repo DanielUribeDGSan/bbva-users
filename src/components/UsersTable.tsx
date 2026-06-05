@@ -9,43 +9,91 @@ export default function UsersTable() {
     const [pagination, setPagination] = useState<FetchUsersResponse | null>(null);
     const [loading, setLoading] = useState(true);
     
+    // State initialization from URL
+    const getInitialFilters = () => {
+        if (typeof window === 'undefined') return { code_bbva: '', phone: '', created_from: '', created_to: '' };
+        
+        const params = new URLSearchParams(window.location.search);
+        let created_from = params.get('created_from') || '';
+        let created_to = params.get('created_to') || '';
+        const filterType = params.get('filter');
+        const today = new Date();
+        
+        if (filterType === 'this_week') {
+            const firstDayOfWeek = new Date(today);
+            firstDayOfWeek.setDate(today.getDate() - today.getDay());
+            created_from = firstDayOfWeek.toISOString().split('T')[0];
+        } else if (filterType === 'current_month') {
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            created_from = firstDayOfMonth.toISOString().split('T')[0];
+        } else if (filterType === 'previous_month') {
+            const firstDayOfPrevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            const lastDayOfPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+            created_from = firstDayOfPrevMonth.toISOString().split('T')[0];
+            created_to = lastDayOfPrevMonth.toISOString().split('T')[0];
+        } else if (filterType === 'this_year') {
+            const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
+            created_from = firstDayOfYear.toISOString().split('T')[0];
+        }
+        
+        return {
+            code_bbva: params.get('code_bbva') || '',
+            phone: params.get('phone') || '',
+            created_from,
+            created_to
+        };
+    };
+
+    const getInitialSearch = () => {
+        if (typeof window === 'undefined') return '';
+        const params = new URLSearchParams(window.location.search);
+        return params.get('search') || '';
+    };
+
+    const getInitialPage = () => {
+        if (typeof window === 'undefined') return 1;
+        const params = new URLSearchParams(window.location.search);
+        const p = parseInt(params.get('page') || '1');
+        return isNaN(p) ? 1 : p;
+    };
+
     // Pagination state
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(getInitialPage);
     const size = 10;
 
     // Filter states
-    const [globalSearch, setGlobalSearch] = useState('');
+    const [globalSearch, setGlobalSearch] = useState(getInitialSearch);
     const [showFilters, setShowFilters] = useState(false);
     const filterRef = useRef<HTMLDivElement>(null);
     
-    const [filters, setFilters] = useState({
-        code_bbva: '',
-        phone: '',
-        created_from: '',
-        created_to: ''
-    });
+    const [filters, setFilters] = useState(getInitialFilters);
+
+    // Sync URL function
+    const updateUrl = (newFilters: any, search: string, p: number) => {
+        if (typeof window === 'undefined') return;
+        const params = new URLSearchParams();
+        if (search) params.set('search', search);
+        if (p > 1) params.set('page', p.toString());
+        if (newFilters.code_bbva) params.set('code_bbva', newFilters.code_bbva);
+        if (newFilters.phone) params.set('phone', newFilters.phone);
+        if (newFilters.created_from) params.set('created_from', newFilters.created_from);
+        if (newFilters.created_to) params.set('created_to', newFilters.created_to);
+        
+        const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+        window.history.replaceState({}, '', newUrl);
+    };
 
     const loadUsers = async () => {
         setLoading(true);
         
-        // Initial check for URL filters (like from dashboard)
-        let initialCreatedFrom = filters.created_from;
-        if (typeof window !== 'undefined' && !initialCreatedFrom) {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('filter') === 'this_week') {
-                const today = new Date();
-                const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-                firstDayOfWeek.setHours(0, 0, 0, 0);
-                initialCreatedFrom = firstDayOfWeek.toISOString().split('T')[0]; // YYYY-MM-DD
-            }
-        }
+        updateUrl(filters, globalSearch, page);
 
         const res = await fetchUsers({
             page,
             size,
             phone: filters.phone || globalSearch || undefined,
             code_bbva: filters.code_bbva || undefined,
-            created_from: initialCreatedFrom || undefined,
+            created_from: filters.created_from || undefined,
             created_to: filters.created_to || undefined
         });
         
@@ -54,15 +102,24 @@ export default function UsersTable() {
         setLoading(false);
     };
 
+    const mounted = useRef(false);
+
     useEffect(() => {
         loadUsers();
     }, [page]);
 
     // Handle search with simple debounce
     useEffect(() => {
+        if (!mounted.current) {
+            mounted.current = true;
+            return;
+        }
         const timeout = setTimeout(() => {
-            setPage(1); // Reset to first page on new search
-            loadUsers();
+            if (page !== 1) {
+                setPage(1); // This will trigger the page effect which calls loadUsers
+            } else {
+                loadUsers(); // Page is already 1, so page effect won't run, call it here
+            }
         }, 500);
         return () => clearTimeout(timeout);
     }, [globalSearch, filters]);
@@ -130,12 +187,12 @@ export default function UsersTable() {
                             onClick={() => setShowFilters(!showFilters)}
                         >
                             <Filter size={18} />
-                            {activeFilterCount > 0 && (
-                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent-yellow text-[#001391] text-[10px] font-bold rounded-full flex items-center justify-center border border-white">
-                                    {activeFilterCount}
-                                </span>
-                            )}
                         </button>
+                        {activeFilterCount > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#0c6dff] text-white text-[11px] font-bold rounded-full flex items-center justify-center border-2 border-white pointer-events-none">
+                                {activeFilterCount}
+                            </span>
+                        )}
                         
                         {/* Filters Dropdown Menu */}
                         {showFilters && (
@@ -183,6 +240,7 @@ export default function UsersTable() {
                                                 value={filters.created_to}
                                                 onChange={(val) => setFilters({...filters, created_to: val})}
                                                 placeholder="YYYY-MM-DD"
+                                                alignRight={true}
                                             />
                                         </div>
                                     </div>
