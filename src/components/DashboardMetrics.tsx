@@ -12,9 +12,19 @@ export default function DashboardMetrics() {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [hasAccess, setHasAccess] = useState(
+        typeof window !== 'undefined' ? localStorage.getItem('site_access_granted') === 'true' : false
+    );
+
+    useEffect(() => {
+        const onAccess = () => setHasAccess(true);
+        window.addEventListener('access_granted', onAccess);
+        return () => window.removeEventListener('access_granted', onAccess);
+    }, []);
 
     useEffect(() => {
         const loadMetrics = async () => {
+            if (!hasAccess) return;
             setIsLoading(true);
             
             let baseDate = new Date();
@@ -101,7 +111,7 @@ export default function DashboardMetrics() {
             setIsLoading(false);
         };
         loadMetrics();
-    }, [selectedDate]);
+    }, [selectedDate, hasAccess]);
 
     let pctChange = 0;
     if (prevMonthUsers === 0) {

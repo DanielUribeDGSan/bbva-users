@@ -9,6 +9,15 @@ export default function UsersTable() {
     const [pagination, setPagination] = useState<FetchUsersResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [isExporting, setIsExporting] = useState(false);
+    const [hasAccess, setHasAccess] = useState(
+        typeof window !== 'undefined' ? localStorage.getItem('site_access_granted') === 'true' : false
+    );
+
+    useEffect(() => {
+        const onAccess = () => setHasAccess(true);
+        window.addEventListener('access_granted', onAccess);
+        return () => window.removeEventListener('access_granted', onAccess);
+    }, []);
     
     // State initialization from URL
     const getInitialFilters = () => {
@@ -85,6 +94,7 @@ export default function UsersTable() {
     };
 
     const loadUsers = async () => {
+        if (!hasAccess) return;
         setLoading(true);
         
         updateUrl(filters, globalSearch, page);
@@ -107,7 +117,7 @@ export default function UsersTable() {
 
     useEffect(() => {
         loadUsers();
-    }, [page, size]);
+    }, [page, size, hasAccess]);
 
     // Handle search with simple debounce
     useEffect(() => {
@@ -168,6 +178,7 @@ export default function UsersTable() {
     const activeFilterCount = Object.values(filters).filter(v => v !== '').length;
 
     const exportToCSV = async () => {
+        if (!hasAccess) return;
         setIsExporting(true);
         try {
             let allData: User[] = [];

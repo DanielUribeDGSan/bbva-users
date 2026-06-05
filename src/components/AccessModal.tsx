@@ -71,6 +71,7 @@ export default function AccessModal() {
     if (btoa(enteredCode) === 'azdSOVdw') {
       localStorage.setItem('site_access_granted', 'true');
       setHasAccess(true);
+      window.dispatchEvent(new Event('access_granted'));
     } else {
       setError(true);
     }
