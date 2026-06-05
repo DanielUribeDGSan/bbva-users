@@ -1,0 +1,18 @@
+---
+import Layout from '../layouts/Layout.astro';
+import UsersTable from '../components/UsersTable';
+---
+
+<Layout title="Users Directory" activeMenu="users">
+    <div class="page-header" style="margin-bottom: 32px;">
+        <h1 class="page-title">Users Directory</h1>
+        <div class="stats-summary">
+            <div class="stat-item">
+                <span class="stat-value">Live</span>
+                <span class="stat-label text-muted">Status</span>
+            </div>
+        </div>
+    </div>
+
+    <UsersTable client:load />
+</Layout>

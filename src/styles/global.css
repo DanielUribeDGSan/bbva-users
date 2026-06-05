@@ -1,0 +1,54 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@theme {
+  --color-bg-light: #F4F2EB;
+  --color-bg-dark: #001391; /* Changed from dark gray */
+  --color-card: #ffffff;
+  --color-card-dark: #001391;
+  
+  --color-text-main: #111111;
+  --color-text-muted: #737373;
+  --color-text-light: #ffffff;
+  
+  --color-bbva-dark: #001391;
+  --color-bbva-accent: #0c6dff;
+  --color-bbva-light: #f7f8f8;
+  
+  --font-sans: 'Outfit', sans-serif;
+  
+  --radius-xl: 32px;
+  --radius-2xl: 40px;
+}
+
+@layer base {
+  body {
+    @apply font-sans text-text-main min-h-screen antialiased bg-[#D5D7D8] flex items-center justify-center p-8;
+  }
+}
+
+@layer components {
+  .app-wrapper {
+    @apply bg-[#f7f8f8] w-full max-w-[1440px] rounded-[48px] p-10 shadow-2xl relative overflow-hidden;
+  }
+  
+  .glass-nav {
+    @apply bg-white shadow-sm px-2 py-1 rounded-full flex items-center gap-1 border border-black/5;
+  }
+  
+  .glass-nav-item {
+    @apply px-4 py-2 rounded-full text-[15px] font-medium text-text-muted transition-all hover:text-text-main;
+  }
+  
+  .glass-nav-item.active {
+    @apply bg-[#001391] text-white;
+  }
+
+  .btn-icon {
+    @apply w-10 h-10 rounded-full bg-white flex items-center justify-center text-text-main transition-transform hover:-translate-y-0.5 shadow-sm border border-black/5;
+  }
+  
+  .card {
+    @apply bg-white rounded-[32px] p-6 shadow-sm border border-black/5 relative overflow-hidden flex flex-col;
+  }
+}
