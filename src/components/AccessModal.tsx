@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Shield } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { Shield } from "lucide-react";
 
 export default function AccessModal() {
   const [hasAccess, setHasAccess] = useState(true);
-  const [code, setCode] = useState(['', '', '', '', '', '']);
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     // Check localStorage on mount
-    const access = localStorage.getItem('site_access_granted');
-    if (access !== 'true') {
+    const access = localStorage.getItem("site_access_granted");
+    if (access !== "true") {
       setHasAccess(false);
     }
   }, []);
@@ -34,13 +34,16 @@ export default function AccessModal() {
     }
 
     // Check code if all filled
-    if (newCode.every(c => c !== '') && newCode.length === 6) {
-      verifyCode(newCode.join(''));
+    if (newCode.every((c) => c !== "") && newCode.length === 6) {
+      verifyCode(newCode.join(""));
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (e.key === "Backspace" && !code[index] && index > 0) {
       // Move back on backspace if current is empty
       inputRefs.current[index - 1]?.focus();
     }
@@ -48,7 +51,7 @@ export default function AccessModal() {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').slice(0, 6);
+    const pastedData = e.clipboardData.getData("text").slice(0, 6);
     if (!pastedData) return;
 
     const newCode = [...code];
@@ -59,7 +62,7 @@ export default function AccessModal() {
     setError(false);
 
     if (pastedData.length === 6) {
-      verifyCode(newCode.join(''));
+      verifyCode(newCode.join(""));
       inputRefs.current[5]?.focus();
     } else {
       inputRefs.current[pastedData.length]?.focus();
@@ -67,11 +70,10 @@ export default function AccessModal() {
   };
 
   const verifyCode = (enteredCode: string) => {
-    // 'k7R9Wp' encoded in base64 is 'azdSOVdw'
-    if (btoa(enteredCode) === 'azdSOVdw') {
-      localStorage.setItem('site_access_granted', 'true');
+    if (btoa(enteredCode) === "azdSOVdw") {
+      localStorage.setItem("site_access_granted", "true");
       setHasAccess(true);
-      window.dispatchEvent(new Event('access_granted'));
+      window.dispatchEvent(new Event("access_granted"));
     } else {
       setError(true);
     }
@@ -83,28 +85,33 @@ export default function AccessModal() {
         <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
           <Shield className="w-8 h-8 text-blue-600" />
         </div>
-        
-        <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">Acceso Restringido</h2>
+
+        <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+          Acceso Restringido
+        </h2>
         <p className="text-gray-500 text-center mb-8 px-4">
           Por favor, ingrese el código de acceso para continuar al sitio.
         </p>
 
-        <div className="flex gap-3 sm:gap-4 mb-8 w-full justify-center" onPaste={handlePaste}>
+        <div
+          className="flex gap-3 sm:gap-4 mb-8 w-full justify-center"
+          onPaste={handlePaste}
+        >
           {code.map((digit, idx) => (
             <input
               key={idx}
-              ref={el => inputRefs.current[idx] = el}
+              ref={(el) => (inputRefs.current[idx] = el)}
               type="password"
               maxLength={1}
               value={digit}
-              onChange={e => handleChange(idx, e.target.value)}
-              onKeyDown={e => handleKeyDown(idx, e)}
+              onChange={(e) => handleChange(idx, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(idx, e)}
               className={`w-12 h-12 sm:w-16 sm:h-16 text-center text-2xl font-semibold border-2 rounded-xl sm:rounded-2xl outline-none transition-all ${
-                error 
-                  ? 'border-red-400 bg-red-50 text-red-600' 
-                  : digit 
-                    ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                    : 'border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
+                error
+                  ? "border-red-400 bg-red-50 text-red-600"
+                  : digit
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
               }`}
             />
           ))}
@@ -116,9 +123,9 @@ export default function AccessModal() {
           </p>
         )}
 
-        <button 
-          onClick={() => verifyCode(code.join(''))}
-          disabled={code.some(c => !c)}
+        <button
+          onClick={() => verifyCode(code.join(""))}
+          disabled={code.some((c) => !c)}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-3 sm:py-4 rounded-xl transition-colors shadow-lg hover:shadow-xl disabled:shadow-none"
         >
           Verificar
