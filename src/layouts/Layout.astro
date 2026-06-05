@@ -27,14 +27,14 @@ const menuItems = [
 	</head>
 	<body>
         <div class="app-wrapper">
-            <header class="flex justify-between items-center mb-10">
-                <div class="flex items-center text-2xl font-medium tracking-tight bg-white px-5 py-2 rounded-full shadow-sm">
+            <header class="flex flex-wrap justify-between items-center mb-10 gap-y-6">
+                <a href="/" class="flex items-center text-2xl font-medium tracking-tight bg-white px-5 py-2 rounded-full shadow-sm hover:shadow-md transition-shadow cursor-pointer text-text-main hover:text-[#001391]">
                     BBVA Estratega Life
-                </div>
+                </a>
 
-                <nav class="glass-nav hidden lg:flex">
+                <nav class="glass-nav flex w-full md:w-auto justify-center order-last md:order-none">
                     {menuItems.map(item => (
-                        <a href={item.href} class={`glass-nav-item ${activeMenu === item.id ? 'active' : ''}`}>
+                        <a href={item.href} class={`glass-nav-item text-center flex-1 md:flex-none ${activeMenu === item.id ? 'active' : ''}`}>
                             {item.label}
                         </a>
                     ))}

@@ -23,13 +23,13 @@
 
 @layer base {
   body {
-    @apply font-sans text-text-main min-h-screen antialiased bg-[#D5D7D8] flex items-center justify-center p-8;
+    @apply font-sans text-text-main min-h-screen antialiased bg-[#D5D7D8] flex items-center justify-center p-0 md:p-8;
   }
 }
 
 @layer components {
   .app-wrapper {
-    @apply bg-[#f7f8f8] w-full max-w-[1440px] rounded-[48px] p-10 shadow-2xl relative overflow-hidden;
+    @apply bg-[#f7f8f8] w-full max-w-[1440px] rounded-none md:rounded-[48px] p-4 md:p-10 shadow-none md:shadow-2xl relative overflow-hidden min-h-screen md:min-h-0;
   }
   
   .glass-nav {

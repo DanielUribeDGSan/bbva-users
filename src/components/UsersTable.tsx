@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Filter, MoreHorizontal, Loader, Search, X } from 'lucide-react';
+import { Filter, MoreHorizontal, Loader, Search, X, Download } from 'lucide-react';
 import DatePicker from './DatePicker';
 import { fetchUsers } from '../services/api';
 import type { User, FetchUsersResponse } from '../services/api';
@@ -8,6 +8,7 @@ export default function UsersTable() {
     const [users, setUsers] = useState<User[]>([]);
     const [pagination, setPagination] = useState<FetchUsersResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isExporting, setIsExporting] = useState(false);
     
     // State initialization from URL
     const getInitialFilters = () => {
@@ -59,7 +60,7 @@ export default function UsersTable() {
 
     // Pagination state
     const [page, setPage] = useState(getInitialPage);
-    const size = 10;
+    const [size, setSize] = useState(10);
 
     // Filter states
     const [globalSearch, setGlobalSearch] = useState(getInitialSearch);
@@ -106,7 +107,7 @@ export default function UsersTable() {
 
     useEffect(() => {
         loadUsers();
-    }, [page]);
+    }, [page, size]);
 
     // Handle search with simple debounce
     useEffect(() => {
@@ -166,24 +167,89 @@ export default function UsersTable() {
 
     const activeFilterCount = Object.values(filters).filter(v => v !== '').length;
 
+    const exportToCSV = async () => {
+        setIsExporting(true);
+        try {
+            let allData: User[] = [];
+            let currentPage = 1;
+            let totalPages = 1;
+            
+            do {
+                const res = await fetchUsers({
+                    page: currentPage,
+                    size: 1000,
+                    phone: filters.phone || globalSearch || undefined,
+                    code_bbva: filters.code_bbva || undefined,
+                    created_from: filters.created_from || undefined,
+                    created_to: filters.created_to || undefined
+                });
+                
+                if (res.data) {
+                    allData = [...allData, ...res.data];
+                }
+                totalPages = res.total_pages || 1;
+                currentPage++;
+            } while (currentPage <= totalPages);
+            
+            if (allData.length === 0) return alert('No hay datos para exportar');
+            
+            const headers = ['Código BBVA', 'Teléfono', 'Fecha de creación'];
+            const csvRows = [headers.join(',')];
+            
+            allData.forEach(user => {
+                const row = [
+                    user.code_bbva || '',
+                    user.phone || '',
+                    user.created_at ? new Date(user.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+                ];
+                csvRows.push(row.map(cell => `"${cell}"`).join(','));
+            });
+            
+            const csvString = '\uFEFF' + csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'usuarios.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Error exporting to CSV:", error);
+            alert("Ocurrió un error al exportar los datos.");
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     return (
         <div className="card w-full p-8 border-none shadow-2xl bg-white/90 backdrop-blur-md rounded-[32px]">
-            <div className="flex justify-end items-center mb-8 relative">
-                <div className="flex gap-4 items-center">
-                    <div className="relative">
+            <div className="flex flex-col sm:flex-row justify-between sm:justify-end items-center mb-8 relative gap-4">
+                <div className="flex gap-4 items-center w-full sm:w-auto">
+                    <div className="relative flex-1 sm:flex-none">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted w-4 h-4" />
                         <input 
                             type="text" 
-                            className="bg-bbva-light border border-black/5 rounded-full pl-10 pr-4 py-2.5 text-sm w-[280px] focus:outline-none focus:border-bbva-accent focus:ring-2 focus:ring-bbva-accent/20 transition-all" 
+                            className="bg-bbva-light border border-black/5 rounded-full pl-10 pr-4 py-2.5 text-sm w-full sm:w-[280px] focus:outline-none focus:border-bbva-accent focus:ring-2 focus:ring-bbva-accent/20 transition-all" 
                             placeholder="Buscar por teléfono..." 
                             value={globalSearch}
                             onChange={(e) => setGlobalSearch(e.target.value)}
                         />
                     </div>
                     
-                    <div className="relative" ref={filterRef}>
+                    <div className="flex gap-2 items-center">
                         <button 
-                            className={`w-10 h-10 rounded-full border border-black/5 flex items-center justify-center shadow-sm transition-colors ${activeFilterCount > 0 ? 'bg-[#001391] text-white' : 'bg-bbva-light text-text-main hover:bg-black/5'}`}
+                            className={`w-10 h-10 rounded-full border border-black/5 flex items-center justify-center shadow-sm transition-colors bg-bbva-light text-text-main hover:bg-black/5 shrink-0 cursor-pointer ${isExporting ? 'opacity-70 pointer-events-none' : ''}`}
+                            onClick={exportToCSV}
+                            title="Exportar a CSV"
+                            disabled={isExporting}
+                        >
+                            {isExporting ? <Loader className="animate-spin" size={18} /> : <Download size={18} />}
+                        </button>
+                        
+                        <div className="relative" ref={filterRef}>
+                        <button 
+                            className={`w-10 h-10 rounded-full border border-black/5 flex items-center justify-center shadow-sm transition-colors cursor-pointer ${activeFilterCount > 0 ? 'bg-[#001391] text-white' : 'bg-bbva-light text-text-main hover:bg-black/5'}`}
                             onClick={() => setShowFilters(!showFilters)}
                         >
                             <Filter size={18} />
@@ -247,6 +313,7 @@ export default function UsersTable() {
                                 </div>
                             </div>
                         )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -298,12 +365,28 @@ export default function UsersTable() {
                         </table>
                     </div>
 
-                    <div className="flex justify-between items-center mt-6 pt-6 border-t border-black/5">
-                        <div className="text-sm text-text-muted font-medium">
+                    <div className="flex flex-col sm:flex-row justify-between items-center mt-6 pt-6 border-t border-black/5 gap-4">
+                        <div className="text-sm text-text-muted font-medium text-center sm:text-left">
                             Mostrando página {pagination?.page || 1} de {pagination?.total_pages || 1} ({pagination?.total || 0} usuarios)
                         </div>
-                        <div className="flex gap-2">
-                            <button 
+                        <div className="flex flex-col sm:flex-row gap-4 items-center">
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-text-muted">Mostrar:</span>
+                                <select 
+                                    className="bg-bbva-light border border-black/5 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-bbva-accent text-text-main"
+                                    value={size}
+                                    onChange={(e) => {
+                                        setSize(Number(e.target.value));
+                                        setPage(1);
+                                    }}
+                                >
+                                    {[10, 20, 30, 50, 100, 500].map(s => (
+                                        <option key={s} value={s}>{s}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex gap-2">
+                                <button 
                                 className="px-5 py-2 rounded-full border border-black/10 bg-white font-medium text-sm hover:bg-bbva-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
                                 onClick={handlePrev} 
                                 disabled={!pagination?.has_previous_page}
@@ -319,6 +402,7 @@ export default function UsersTable() {
                             </button>
                         </div>
                     </div>
+                </div>
                 </>
             )}
         </div>

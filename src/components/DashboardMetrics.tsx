@@ -138,7 +138,7 @@ export default function DashboardMetrics() {
             {/* Header / Title */}
             <div className="flex justify-between items-end mb-10">
                 <div>
-                    <h1 className="text-[42px] font-light tracking-tight leading-tight mb-2">
+                    <h1 className="text-3xl md:text-[42px] font-light tracking-tight leading-tight mb-2">
                         Comparación de usuarios del mes de 
                         <div className="relative inline-block ml-2">
                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="font-bold text-[#001391] hover:opacity-80 transition-opacity capitalize cursor-pointer">
@@ -192,10 +192,10 @@ export default function DashboardMetrics() {
                     </div>
                 </div>
             ) : (
-            <div className="flex gap-6 w-full">
+            <div className="flex flex-col xl:flex-row gap-6 w-full">
             
             {/* COLUMN 1 */}
-            <div className="flex flex-col gap-6 w-[25%]">
+            <div className="flex flex-col gap-6 w-full xl:w-[25%]">
                 {/* Lora Piterson Profile Card */}
                 <div className="card p-0 rounded-[32px] overflow-hidden relative h-[380px] shrink-0 group">
                     <img 
@@ -244,8 +244,8 @@ export default function DashboardMetrics() {
             </div>
 
             {/* COLUMN 2 & 3 */}
-            <div className="flex flex-col gap-6 w-[50%]">
-                <div className="flex gap-6">
+            <div className="flex flex-col gap-6 w-full xl:w-[50%]">
+                <div className="flex flex-col sm:flex-row gap-6">
                     {/* Progress */}
                     <a href="/users?filter=current_month" className="card rounded-[32px] flex-1 block hover:shadow-xl transition-shadow cursor-pointer relative group">
                         <div className="flex justify-between items-start mb-6">
@@ -304,10 +304,8 @@ export default function DashboardMetrics() {
 
                 {/* Bottom Right Calendar & Events Area */}
                 <div className="card rounded-[32px] p-0 flex flex-col justify-between flex-1 min-h-[300px] overflow-hidden">
-                    <div className="p-6 flex justify-between items-center border-b border-black/5">
-                        <span className="text-sm text-text-muted capitalize">{prevMonthName}</span>
+                    <div className="p-6 flex justify-center items-center border-b border-black/5">
                         <h3 className="text-[17px] font-medium capitalize">{currentMonthName}</h3>
-                        <span className="text-sm text-text-muted capitalize">{nextMonthName}</span>
                     </div>
                     
                     <div className="flex-1 p-6 relative flex flex-col overflow-hidden">
@@ -326,31 +324,40 @@ export default function DashboardMetrics() {
                             {monthWeeks.map((w, idx) => {
                                 const isBlue = idx % 2 === 0;
                                 const alignClass = isBlue ? "mb-12" : "mt-12";
+                                
+                                const year = selectedDate.getFullYear();
+                                const monthStr = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                                const fromStr = `${year}-${monthStr}-${String(w.start).padStart(2, '0')}`;
+                                const toStr = `${year}-${monthStr}-${String(w.end).padStart(2, '0')}`;
+                                const hrefStr = `/users?created_from=${fromStr}&created_to=${toStr}`;
 
                                 if (isBlue) {
                                     return (
-                                        <div key={idx} className={`shrink-0 bg-[#001391] text-white p-4 rounded-2xl w-[220px] h-[80px] shadow-lg flex justify-between items-center transition-all hover:-translate-y-1 ${alignClass}`}>
+                                        <a href={hrefStr} key={idx} className={`shrink-0 relative group bg-[#001391] text-white p-4 rounded-2xl w-[220px] h-[80px] shadow-lg flex justify-between items-center transition-all hover:-translate-y-1 cursor-pointer ${alignClass}`}>
                                             <div>
                                                 <div className="text-sm font-medium mb-1">Total de usuarios</div>
                                                 <div className="text-[11px] text-white/60">del {w.start} al {w.end}</div>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 pr-2">
                                                 <div className="flex -space-x-2">
                                                     <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=50&h=50&fit=crop" className="w-6 h-6 rounded-full border-2 border-[#001391]" />
                                                     <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=50&h=50&fit=crop" className="w-6 h-6 rounded-full border-2 border-[#001391]" />
                                                 </div>
                                                 <span className="text-2xl font-light pr-1">{w.total}</span>
                                             </div>
-                                        </div>
+                                            <div className="absolute top-1 right-3 w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:-translate-y-0.5 transition-transform">
+                                                <ArrowUpRight size={12} />
+                                            </div>
+                                        </a>
                                     );
                                 } else {
                                     return (
-                                        <div key={idx} className={`shrink-0 bg-white border border-black/5 p-4 rounded-2xl w-[220px] h-[80px] shadow-lg flex justify-between items-center transition-all hover:-translate-y-1 ${alignClass}`}>
+                                        <a href={hrefStr} key={idx} className={`shrink-0 relative group bg-white border border-black/5 p-4 rounded-2xl w-[220px] h-[80px] shadow-lg flex justify-between items-center transition-all hover:-translate-y-1 cursor-pointer ${alignClass}`}>
                                             <div>
                                                 <div className="text-sm font-medium text-[#0c6dff] mb-1">Nuevos usuarios</div>
                                                 <div className="text-[11px] text-text-muted">del {w.start} al {w.end}</div>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 pr-2">
                                                 <div className="flex -space-x-2">
                                                     <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=50&h=50&fit=crop" className="w-6 h-6 rounded-full border-2 border-white" />
                                                 </div>
@@ -358,7 +365,10 @@ export default function DashboardMetrics() {
                                                     {w.total}
                                                 </div>
                                             </div>
-                                        </div>
+                                            <div className="absolute top-1 right-3 w-6 h-6 rounded-full bg-bbva-light flex items-center justify-center text-text-main group-hover:-translate-y-0.5 transition-transform">
+                                                <ArrowUpRight size={12} />
+                                            </div>
+                                        </a>
                                     );
                                 }
                             })}
@@ -368,7 +378,7 @@ export default function DashboardMetrics() {
             </div>
 
             {/* COLUMN 4 */}
-            <div className="flex flex-col gap-6 w-[25%]">
+            <div className="flex flex-col gap-6 w-full xl:w-[25%]">
                 {/* Onboarding Overview */}
                 <div className="card rounded-[32px]">
                     <div className="flex justify-between items-center mb-6">
