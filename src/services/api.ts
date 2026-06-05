@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://3.149.74.186:8080/v1';
+const API_BASE_URL = import.meta.env.DEV ? 'http://3.149.74.186:8080/v1' : '/api/v1';
 const TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NDI5MjAyOTAsImV4cCI6MzMyMDc1NzA5MCwicmVhZGVyX2lkIjoiMzE4OTI2IiwicmVhZGVyX3R5cGUiOiJ1aG4ifQ.JgiBSrvVEs3xaw-fak9YROWDxiPsbvyT1REWzAt0wU0';
 
 const api = axios.create({
