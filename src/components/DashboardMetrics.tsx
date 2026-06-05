@@ -1,27 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Pause, ArrowUpRight, CheckCircle, Circle, ChevronDown, Monitor, Clock, MoreVertical, Link2, MonitorPlay } from 'lucide-react';
+import { fetchUsers } from '../services/api';
 
 export default function DashboardMetrics() {
+    const [weeklyUsers, setWeeklyUsers] = useState(0);
+
+    useEffect(() => {
+        const loadWeeklyUsers = async () => {
+            const today = new Date();
+            const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+            firstDayOfWeek.setHours(0, 0, 0, 0);
+            
+            const res = await fetchUsers({
+                limit: 1, // We just need the total
+                created_from: firstDayOfWeek.toISOString()
+            });
+            setWeeklyUsers(res.total || 0);
+        };
+        loadWeeklyUsers();
+    }, []);
+
     return (
         <div className="flex gap-6 w-full">
             
             {/* COLUMN 1 */}
             <div className="flex flex-col gap-6 w-[25%]">
                 {/* Lora Piterson Profile Card */}
-                <div className="card p-0 rounded-[32px] overflow-hidden relative h-[380px] shrink-0">
+                <div className="card p-0 rounded-[32px] overflow-hidden relative h-[380px] shrink-0 group">
                     <img 
-                        src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                        alt="Lora Piterson" 
-                        className="w-full h-full object-cover"
+                        src="/src/assets/bbva-estratega-life.avif" 
+                        alt="BBVA Estratega Life" 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#001391]/90 to-transparent text-white flex justify-between items-end">
-                        <div>
-                            <h3 className="text-2xl font-light mb-1">Lora Piterson</h3>
-                            <p className="text-sm text-white/70">UX/UI Designer</p>
+                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#001391]/90 via-[#001391]/60 to-transparent text-white flex flex-col gap-3">
+                        <div className="flex justify-between items-start">
+                            <h3 className="text-xl font-light leading-tight">Usuarios Nuevos<br/>de esta semana</h3>
+                            <div className="bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-lg font-medium">
+                                {weeklyUsers}
+                            </div>
                         </div>
-                        <div className="bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-medium">
-                            $1,200
-                        </div>
+                        <a 
+                            href="/users?filter=this_week" 
+                            className="inline-flex items-center justify-center w-full bg-white text-[#001391] py-2.5 rounded-full text-sm font-medium hover:bg-bbva-light transition-colors shadow-sm"
+                        >
+                            Ver nuevos usuarios
+                        </a>
                     </div>
                 </div>
 

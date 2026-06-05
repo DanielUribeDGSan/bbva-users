@@ -18,21 +18,32 @@ export interface User {
   phone?: string;
   created_at?: string;
   status?: string;
+  code_bbva?: string;
   [key: string]: any;
 }
 
 export interface FetchUsersParams {
-  limit?: number;
-  offset?: number;
+  page?: number;
+  size?: number;
   created_from?: string;
   created_to?: string;
-  search?: string;
   phone?: string;
+  email?: string;
+  username?: string;
   code?: string;
+  code_bbva?: string;
 }
 
 export interface FetchUsersResponse {
   total: number;
+  page: number;
+  size: number;
+  total_pages: number;
+  remaining_pages: number;
+  has_next_page: boolean;
+  has_previous_page: boolean;
+  next_page: number | null;
+  previous_page: number | null;
   data: User[];
 }
 
@@ -43,6 +54,17 @@ export const fetchUsers = async (params: FetchUsersParams): Promise<FetchUsersRe
   } catch (error) {
     console.error('Error fetching users:', error);
     // Return empty state if API fails
-    return { total: 0, data: [] };
+    return { 
+      total: 0, 
+      page: 1, 
+      size: params.size || 20, 
+      total_pages: 0, 
+      remaining_pages: 0, 
+      has_next_page: false, 
+      has_previous_page: false, 
+      next_page: null, 
+      previous_page: null, 
+      data: [] 
+    };
   }
 };
