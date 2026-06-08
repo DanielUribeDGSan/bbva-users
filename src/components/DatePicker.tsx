@@ -24,7 +24,7 @@ export default function DatePicker({ value, onChange, placeholder = "Seleccionar
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const daysOfWeek = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+    const daysOfWeek = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
     
     const getDaysInMonth = (date: Date) => {
         const year = date.getFullYear();
@@ -90,8 +90,8 @@ export default function DatePicker({ value, onChange, placeholder = "Seleccionar
     };
 
     const monthNames = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
     ];
 
     const isSelected = (date: Date) => {
