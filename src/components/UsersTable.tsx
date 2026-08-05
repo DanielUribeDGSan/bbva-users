@@ -9,6 +9,8 @@ export default function UsersTable() {
     const [pagination, setPagination] = useState<FetchUsersResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [isExporting, setIsExporting] = useState(false);
+    const [isExportingAll, setIsExportingAll] = useState(false);
+    const [exportedCount, setExportedCount] = useState(0);
     const [hasAccess, setHasAccess] = useState(
         typeof window !== 'undefined' ? localStorage.getItem('site_access_granted') === 'true' : false
     );
@@ -27,9 +29,21 @@ export default function UsersTable() {
         let created_from = params.get('created_from') || '';
         let created_to = params.get('created_to') || '';
         const filterType = params.get('filter');
+        const period = params.get('period');
         const today = new Date();
         
-        if (filterType === 'this_week') {
+        if (period?.startsWith('month:') && !created_from && !created_to) {
+            const [, yearText, monthText] = period.split(':');
+            const year = Number(yearText);
+            const month = Number(monthText);
+            if (Number.isInteger(year) && Number.isInteger(month) && month >= 0 && month <= 11) {
+                const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
+                created_from = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+                created_to = isCurrentMonth
+                    ? `${year}-${String(month + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+                    : `${year}-${String(month + 1).padStart(2, '0')}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, '0')}`;
+            }
+        } else if (filterType === 'this_week') {
             const firstDayOfWeek = new Date(today);
             firstDayOfWeek.setDate(today.getDate() - today.getDay());
             created_from = firstDayOfWeek.toISOString().split('T')[0];
@@ -81,7 +95,8 @@ export default function UsersTable() {
     // Sync URL function
     const updateUrl = (newFilters: any, search: string, p: number) => {
         if (typeof window === 'undefined') return;
-        const params = new URLSearchParams();
+        const params = new URLSearchParams(window.location.search);
+        ['search', 'page', 'code_bbva', 'phone', 'created_from', 'created_to', 'filter'].forEach(key => params.delete(key));
         if (search) params.set('search', search);
         if (p > 1) params.set('page', p.toString());
         if (newFilters.code_bbva) params.set('code_bbva', newFilters.code_bbva);
@@ -233,8 +248,79 @@ export default function UsersTable() {
         }
     };
 
+    const csvCell = (value: unknown) => {
+        let text = value == null ? '' : typeof value === 'object' ? JSON.stringify(value) : String(value);
+        if (/^[=+\-@]/.test(text)) text = `'${text}`;
+        return `"${text.replace(/"/g, '""')}"`;
+    };
+
+    const downloadUsersCsv = (data: User[], filename: string) => {
+        const discoveredColumns = [...new Set(data.flatMap(user => Object.keys(user)))];
+        const preferredColumns = ['id', 'code_bbva', 'phone', 'email', 'username', 'created_at'];
+        const headers = [
+            ...preferredColumns.filter(column => discoveredColumns.includes(column)),
+            ...discoveredColumns.filter(column => !preferredColumns.includes(column))
+        ];
+        const csv = [
+            headers.map(csvCell).join(','),
+            ...data.map(user => headers.map(header => csvCell(user[header])).join(','))
+        ].join('\r\n');
+        const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    };
+
+    const exportAllUsers = async () => {
+        if (!hasAccess || isExporting || isExportingAll) return;
+        setIsExportingAll(true);
+        setExportedCount(0);
+        try {
+            const today = new Date();
+            const createdTo = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const allData: User[] = [];
+            let currentPage = 1;
+            let totalPages = 1;
+
+            do {
+                const response = await fetchUsers({
+                    page: currentPage,
+                    size: 1000,
+                    created_from: '2024-12-18',
+                    created_to: createdTo
+                });
+                const remainingCapacity = 50000 - allData.length;
+                const pageRows = (response.data || []).slice(0, remainingCapacity);
+                allData.push(...pageRows);
+                setExportedCount(allData.length);
+                totalPages = Math.min(response.total_pages || 1, 50);
+                currentPage += 1;
+            } while (currentPage <= totalPages && allData.length < 50000);
+
+            const filteredUsers = allData
+                .filter(user => Number(user.id) > 78)
+                .sort((a, b) => Number(a.id) - Number(b.id));
+            if (filteredUsers.length === 0) {
+                alert('No se encontraron usuarios desde el 18 de diciembre de 2024.');
+                return;
+            }
+            downloadUsersCsv(filteredUsers, `usuarios-todos-2024-12-18_${createdTo}.csv`);
+        } catch (error) {
+            console.error('Error exporting all users:', error);
+            alert('No fue posible descargar todos los usuarios.');
+        } finally {
+            setIsExportingAll(false);
+            setExportedCount(0);
+        }
+    };
+
     return (
-        <div className="card w-full p-8 border-none shadow-2xl bg-white/90 backdrop-blur-md rounded-[32px]">
+        <div className="card w-full border-none bg-white/90 p-4 shadow-sm backdrop-blur-md sm:p-6 rounded-2xl">
             <div className="flex flex-col sm:flex-row justify-between sm:justify-end items-center mb-8 relative gap-4">
                 <div className="flex gap-4 items-center w-full sm:w-auto">
                     <div className="relative flex-1 sm:flex-none">
@@ -248,12 +334,24 @@ export default function UsersTable() {
                         />
                     </div>
                     
-                    <div className="flex gap-2 items-center">
+                    <div className="flex flex-wrap gap-2 items-center justify-end">
+                        <button
+                            type="button"
+                            className={`h-10 rounded-full border border-[#001391]/10 flex items-center justify-center gap-2 px-4 shadow-sm transition-colors bg-[#001391] text-white hover:bg-[#072f92] shrink-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70 ${isExportingAll ? 'pointer-events-none' : ''}`}
+                            onClick={exportAllUsers}
+                            title="Descargar todos los usuarios desde el 18 de diciembre de 2024"
+                            disabled={isExporting || isExportingAll}
+                        >
+                            {isExportingAll ? <Loader className="animate-spin" size={18} /> : <Download size={18} />}
+                            <span className="text-sm font-medium whitespace-nowrap">
+                                {isExportingAll ? `Descargando ${exportedCount.toLocaleString('es-MX')}` : 'Descargar todos'}
+                            </span>
+                        </button>
                         <button 
-                            className={`w-10 h-10 rounded-full border border-black/5 flex items-center justify-center shadow-sm transition-colors bg-bbva-light text-text-main hover:bg-black/5 shrink-0 cursor-pointer ${isExporting ? 'opacity-70 pointer-events-none' : ''}`}
+                            className={`w-10 h-10 rounded-full border border-black/5 flex items-center justify-center shadow-sm transition-colors bg-bbva-light text-text-main hover:bg-black/5 shrink-0 cursor-pointer disabled:cursor-not-allowed ${isExporting ? 'opacity-70 pointer-events-none' : ''}`}
                             onClick={exportToCSV}
-                            title="Exportar a CSV"
-                            disabled={isExporting}
+                            title="Exportar los filtros actuales a CSV"
+                            disabled={isExporting || isExportingAll}
                         >
                             {isExporting ? <Loader className="animate-spin" size={18} /> : <Download size={18} />}
                         </button>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, ArrowUpRight, CheckCircle, Circle, ChevronDown, Monitor, Clock, MoreVertical, Link2, MonitorPlay } from 'lucide-react';
+import { Play, Pause, ArrowUpRight, CheckCircle, Circle, Monitor, Clock, MoreVertical, Link2, MonitorPlay } from 'lucide-react';
 import { fetchUsers } from '../services/api';
 
 export default function DashboardMetrics() {
@@ -9,8 +9,17 @@ export default function DashboardMetrics() {
     const [currentYearUsers, setCurrentYearUsers] = useState(0);
     const [monthWeeks, setMonthWeeks] = useState<{start: number, end: number, total: number}[]>([]);
     const [prevMonthWeeks, setPrevMonthWeeks] = useState<{start: number, end: number, total: number}[]>([]);
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [selectedDate] = useState(() => {
+        const now = new Date();
+        if (typeof window === 'undefined') return now;
+        const period = new URLSearchParams(window.location.search).get('period');
+        const [, yearText, monthText] = period?.split(':') || [];
+        const year = Number(yearText);
+        const month = Number(monthText);
+        return Number.isInteger(year) && Number.isInteger(month) && month >= 0 && month <= 11
+            ? new Date(year, month, 1)
+            : now;
+    });
     const [isLoading, setIsLoading] = useState(true);
     const [hasAccess, setHasAccess] = useState(
         typeof window !== 'undefined' ? localStorage.getItem('site_access_granted') === 'true' : false
@@ -146,48 +155,10 @@ export default function DashboardMetrics() {
     return (
         <div className="w-full">
             {/* Header / Title */}
-            <div className="flex justify-between items-end mb-10">
+            <div className="flex justify-between items-end mb-6">
                 <div>
-                    <h1 className="text-3xl md:text-[42px] font-light tracking-tight leading-tight mb-2">
-                        Comparación de usuarios del mes de 
-                        <div className="relative inline-block ml-2">
-                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="font-bold text-[#001391] hover:opacity-80 transition-opacity capitalize cursor-pointer">
-                                {currentMonthNameDropdown}
-                            </button>
-                            {isMenuOpen && (
-                                <div className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-xl border border-black/5 z-50 w-48 overflow-hidden">
-                                    <div className="max-h-64 overflow-y-auto p-2">
-                                        {meses.map((m, i) => {
-                                            const currentMonthIndex = new Date().getMonth();
-                                            const isFuture = i > currentMonthIndex;
-                                            
-                                            return (
-                                                <button 
-                                                    key={i}
-                                                    disabled={isFuture}
-                                                    onClick={() => {
-                                                        if (isFuture) return;
-                                                        const newDate = new Date();
-                                                        newDate.setMonth(i);
-                                                        setSelectedDate(newDate);
-                                                        setIsMenuOpen(false);
-                                                    }}
-                                                    className={`w-full text-left px-4 py-2 rounded-xl text-sm capitalize transition-colors ${
-                                                        isFuture 
-                                                            ? 'opacity-30 cursor-not-allowed' 
-                                                            : selectedDate.getMonth() === i 
-                                                                ? 'bg-[#001391] text-white cursor-pointer' 
-                                                                : 'hover:bg-black/5 cursor-pointer'
-                                                    }`}
-                                                >
-                                                    {m}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                    <h1 className="text-2xl font-bold tracking-tight leading-tight text-[#001391] sm:text-3xl">
+                        Comparación de usuarios de <span className="capitalize">{currentMonthNameDropdown} {selectedDate.getFullYear()}</span>
                     </h1>
                 </div>
             </div>

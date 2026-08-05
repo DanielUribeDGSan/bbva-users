@@ -23,13 +23,36 @@
 
 @layer base {
   body {
-    @apply font-sans text-text-main min-h-screen antialiased bg-[#D5D7D8] flex items-center justify-center p-0 md:p-8;
+    @apply font-sans text-text-main min-h-screen antialiased bg-[#f7f8f8] m-0;
   }
 }
 
 @layer components {
   .app-wrapper {
     @apply bg-[#f7f8f8] w-full max-w-[1440px] rounded-none md:rounded-[48px] p-4 md:p-10 shadow-none md:shadow-2xl relative overflow-hidden min-h-screen md:min-h-0;
+  }
+
+  .sidebar-link {
+    @apply flex h-16 w-full cursor-pointer flex-col items-center justify-center gap-1 text-gray-400 transition-all duration-300 hover:bg-gray-50 hover:text-gray-700;
+    border-radius: 16px;
+  }
+
+  .sidebar-link span {
+    @apply text-[10px] font-semibold leading-none;
+  }
+
+  .sidebar-link.active {
+    @apply bg-[#0c6dff] text-white shadow-md;
+    box-shadow: 0 8px 16px rgb(12 109 255 / 30%);
+  }
+
+  .sidebar-utility {
+    @apply flex aspect-square w-full cursor-pointer items-center justify-center text-gray-400 transition-all hover:bg-gray-50 hover:text-gray-700;
+    border-radius: 16px;
+  }
+
+  #main-sidebar.mobile-open {
+    @apply flex w-[min(19rem,85vw)];
   }
   
   .glass-nav {
